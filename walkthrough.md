@@ -1,0 +1,60 @@
+
+# Site Plan Visualizer Walkthrough
+
+This guide explains how to use the Python script to visualize building placements on your map images.
+
+## 📂 File Structure
+
+Your project is organized as follows:
+
+- **`site_plan_visualizer.py`**: The main script.
+- **`input_images/`**: Folder for your high-resolution map images.
+    - `wariant_5_dzialek.png`: Image for the 5-plot scenario.
+    - `wariant_4_dzialki.png`: Image for the 4-plot scenario.
+- **`wizualizacja_wariant_5_dzialek.png`**: (Output) Visualization result.
+- **`wizualizacja_wariant_4_dzialki.png`**: (Output) Visualization result.
+- **`.venv/`**: Virtual environment containing installed libraries (matplotlib, PIL).
+
+## 🚀 How to Run
+
+1. **Update Images**:
+   - Place your high-resolution high-quality images in the `input_images` folder.
+   - Rename them to `wariant_5_dzialek.png` (light background) and `wariant_4_dzialki.png` (dark background), OR update the filenames in the script configuration.
+
+2. **Run the Script**:
+   Open a terminal and execute:
+   ```bash
+   .venv/bin/python site_plan_visualizer.py
+   ```
+
+3. **Check Results**:
+   The script will generate two new images in the main directory: `wizualizacja_wariant_5_dzialek.png` and `wizualizacja_wariant_4_dzialki.png`.
+
+## ⚙️ Configuration (How to Editing the Script)
+
+Open `site_plan_visualizer.py` in your editor. Scroll down to the `SCENARIOS` dictionary.
+
+### 1. Adjusting Scale
+Since the script uses a "pixel-per-meter" scale, you need to calibrate it for your specific images.
+- Find `reference_px` and `reference_m` in the config.
+- Measure a known line on your image (e.g., a plot boundary) in **pixels** (using Paint, GIMP, or Photoshop).
+- Enter that pixel value into `reference_px` and the real metric length into `reference_m`.
+
+### 2. Moving Buildings
+Modify the `objects` list for each scenario.
+```python
+{'x': 250, 'y': 250, 'w': 10, 'l': 15, 'angle': 45, 'type': 'house'}
+```
+- **x, y**: Coordinates of the top-left corner (in pixels).
+- **w, l**: Width and length of the building (in meters).
+- **angle**: Rotation angle (degrees).
+- **type**: 'house' (red) or 'driveway' (gray).
+
+## 🖼️ Preview
+Below are the dry-run visualizations generated with the initial low-res images.
+
+**Variant 1 (5 Plots)**
+![5 Plot Variant](wizualizacja_wariant_5_dzialek.png)
+
+**Variant 2 (4 Plots)**
+![4 Plot Variant](wizualizacja_wariant_4_dzialki.png)

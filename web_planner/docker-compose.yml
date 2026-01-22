@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  planner:
+    build: .
+    container_name: mpzp-planner
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./planer.db:/app/planer.db
+    restart: unless-stopped

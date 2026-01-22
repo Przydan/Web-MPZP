@@ -1,0 +1,27 @@
+venv/
+__pycache__/
+*.pyc
+*.db
+.DS_Store
+.vscode/
+
+# Ignore uploads folder content but keep the folder
+web_planner/uploads/*
+!web_planner/uploads/.gitkeep
+
+# Ignore projects folder content but keep the folder
+web_planner/projects/*
+!web_planner/projects/.gitkeep
+
+# Ignore root visualizations
+wizualizacja_*.png
+*.log
+
+# Ignore resources directory
+resources/
+
+# Ignore artifacts
+walkthrough.md
+
+# Ignore local run scripts if they contain secrets (optional, but good practice)
+# run_local.sh
