@@ -39,4 +39,6 @@ Wymagania: `Python 3.8+`, `pip`.
 
 ## 📜 Licencja
 
-Prywatne repozytorium Antigravity.
+Ten projekt jest udostępniany na licencji **MIT**. Szczegóły znajdują się w pliku [LICENSE](LICENSE).
+
+Copyright (c) 2026 Patryk Przydanek
