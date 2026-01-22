@@ -8,11 +8,6 @@ This guide explains how to use the Python script to visualize building placement
 Your project is organized as follows:
 
 - **`site_plan_visualizer.py`**: The main script.
-- **`input_images/`**: Folder for your high-resolution map images.
-    - `wariant_5_dzialek.png`: Image for the 5-plot scenario.
-    - `wariant_4_dzialki.png`: Image for the 4-plot scenario.
-- **`wizualizacja_wariant_5_dzialek.png`**: (Output) Visualization result.
-- **`wizualizacja_wariant_4_dzialki.png`**: (Output) Visualization result.
 - **`.venv/`**: Virtual environment containing installed libraries (matplotlib, PIL).
 
 ## 🚀 How to Run
@@ -53,8 +48,3 @@ Modify the `objects` list for each scenario.
 ## 🖼️ Preview
 Below are the dry-run visualizations generated with the initial low-res images.
 
-**Variant 1 (5 Plots)**
-![5 Plot Variant](wizualizacja_wariant_5_dzialek.png)
-
-**Variant 2 (4 Plots)**
-![4 Plot Variant](wizualizacja_wariant_4_dzialki.png)
