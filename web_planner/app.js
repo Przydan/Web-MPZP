@@ -1254,13 +1254,36 @@ function getPolygonSignedArea(points) {
     return area / 2;
 }
 
+// --- MATH HELPERS ---
+function distPointToSegment(p, v, w) {
+    const l2 = (w.x - v.x) ** 2 + (w.y - v.y) ** 2;
+    if (l2 == 0) return { dist: Math.hypot(p.x - v.x, p.y - v.y), proj: v };
+    let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    const proj = { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) };
+    return { dist: Math.hypot(p.x - proj.x, p.y - proj.y), proj: proj };
+}
+
+function getBuildingCorners(b) {
+    const w = b.w_m * scalePxPerM;
+    const l = b.l_m * scalePxPerM;
+    const center = { x: b.x + w / 2, y: b.y + l / 2 };
+    const ang = b.angle * Math.PI / 180;
+    const cos = Math.cos(ang), sin = Math.sin(ang);
+    const dx = w / 2, dy = l / 2;
+    return [
+        { x: -dx, y: -dy }, { x: dx, y: -dy }, { x: dx, y: dy }, { x: -dx, y: dy }
+    ].map(p => ({
+        x: center.x + p.x * cos - p.y * sin,
+        y: center.y + p.x * sin + p.y * cos
+    }));
+}
+
 function computeInsetPolygon(points, offset) {
     if (!points || points.length < 3) return [];
 
-    // Determine winding direction and adjust offset accordingly
+    // Determine winding direction
     const signedArea = getPolygonSignedArea(points);
-    // If clockwise (negative area), invert offset to get inward direction
-    const adjustedOffset = signedArea < 0 ? -offset : offset;
 
     let lines = [];
     for (let i = 0; i < points.length; i++) {
@@ -1269,10 +1292,15 @@ function computeInsetPolygon(points, offset) {
         let dx = p2.x - p1.x;
         let dy = p2.y - p1.y;
         const len = Math.sqrt(dx * dx + dy * dy);
-        if (len < 0.0001) continue; // Skip degenerate edges
+        if (len < 0.0001) continue;
         dx /= len;
         dy /= len;
-        // Normal pointing inward (perpendicular to edge)
+
+        // Handle variable offsets (array or scalar)
+        const rawOffset = Array.isArray(offset) ? (offset[i] || 0) : offset;
+        const adjustedOffset = signedArea < 0 ? -rawOffset : rawOffset;
+
+        // Normal pointing inward
         lines.push({
             p: { x: p1.x - dy * adjustedOffset, y: p1.y + dx * adjustedOffset },
             dir: { x: dx, y: dy }
@@ -1284,7 +1312,7 @@ function computeInsetPolygon(points, offset) {
         const l1 = lines[i];
         const l2 = lines[(i + 1) % lines.length];
         const det = l1.dir.x * l2.dir.y - l1.dir.y * l2.dir.x;
-        if (Math.abs(det) < 1e-9) continue; // Parallel lines
+        if (Math.abs(det) < 1e-9) continue;
         const dx = l2.p.x - l1.p.x;
         const dy = l2.p.y - l1.p.y;
         const t = (dx * l2.dir.y - dy * l2.dir.x) / det;
@@ -1428,21 +1456,69 @@ function draw() {
         ctx.strokeStyle = isSelected ? 'blue' : 'green'; ctx.lineWidth = 2 / camera.zoom; ctx.stroke();
 
         if (scalePxPerM > 0) {
-            const minM = poly.setbackSide || 4;
-            if (minM > 0) {
-                // Use the improved computeInsetPolygon which handles winding direction
-                const inset = computeInsetPolygon(pts, minM * scalePxPerM);
-                if (inset.length > 0) {
-                    ctx.beginPath();
-                    ctx.moveTo(inset[0].x, inset[0].y);
-                    for (let i = 1; i < inset.length; i++) ctx.lineTo(inset[i].x, inset[i].y);
-                    ctx.closePath();
-                    ctx.setLineDash([5 / camera.zoom, 5 / camera.zoom]);
-                    ctx.strokeStyle = 'yellow';
-                    ctx.lineWidth = 2 / camera.zoom;
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-                }
+            const frontIdx = poly.frontEdgeIndex || 0;
+            const offsets = pts.map((_, i) => (i === frontIdx ? (poly.setbackFront || 6) : (poly.setbackSide || 4)) * scalePxPerM);
+
+            const inset = computeInsetPolygon(pts, offsets);
+            if (inset.length > 0) {
+                ctx.beginPath();
+                ctx.moveTo(inset[0].x, inset[0].y);
+                for (let i = 1; i < inset.length; i++) ctx.lineTo(inset[i].x, inset[i].y);
+                ctx.closePath();
+                ctx.setLineDash([5 / camera.zoom, 5 / camera.zoom]);
+                ctx.strokeStyle = 'yellow';
+                ctx.lineWidth = 2 / camera.zoom;
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            if (isSelected) {
+                // Highlight Front Edge
+                const p1 = pts[frontIdx];
+                const p2 = pts[(frontIdx + 1) % pts.length];
+                ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+                ctx.strokeStyle = 'red'; ctx.lineWidth = 4 / camera.zoom; ctx.stroke();
+
+                // Label Front
+                ctx.fillStyle = 'red'; ctx.font = `bold ${12 / camera.zoom}px Arial`;
+                ctx.fillText("FRONT", (p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+
+                // Draw distance from buildings to Front
+                buildings.forEach(b => {
+                    const corners = getBuildingCorners(b);
+                    let minDist = Infinity;
+                    let bestProj = null;
+                    let bestCorner = null;
+
+                    corners.forEach(c => {
+                        const res = distPointToSegment(c, p1, p2);
+                        if (res.dist < minDist) {
+                            minDist = res.dist;
+                            bestProj = res.proj;
+                            bestCorner = c;
+                        }
+                    });
+
+                    if (bestCorner) {
+                        ctx.beginPath(); ctx.moveTo(bestCorner.x, bestCorner.y); ctx.lineTo(bestProj.x, bestProj.y);
+                        ctx.strokeStyle = 'magenta'; ctx.setLineDash([2, 3]); ctx.lineWidth = 2 / camera.zoom; ctx.stroke(); ctx.setLineDash([]);
+
+                        const distM = minDist / scalePxPerM;
+                        const midX = (bestCorner.x + bestProj.x) / 2;
+                        const midY = (bestCorner.y + bestProj.y) / 2;
+
+                        // White background for text
+                        ctx.save();
+                        ctx.font = `bold ${11 / camera.zoom}px Arial`;
+                        const metrics = ctx.measureText(distM.toFixed(1) + 'm');
+                        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                        ctx.fillRect(midX - metrics.width / 2 - 2, midY - 6, metrics.width + 4, 12);
+
+                        ctx.fillStyle = 'magenta';
+                        ctx.fillText(distM.toFixed(1) + 'm', midX, midY);
+                        ctx.restore();
+                    }
+                });
             }
         }
         if (isSelected) {
@@ -1726,6 +1802,17 @@ document.getElementById('btnConfirmScale')?.addEventListener('click', () => {
     if (calibPointsCount) calibPointsCount.textContent = '0';
 });
 document.getElementById('btnDrawPlot').onclick = document.getElementById('toolDraw').onclick;
+
+document.getElementById('btnSetFront').onclick = () => {
+    if (selectedPlotIndex !== -1) {
+        const p = plots[selectedPlotIndex];
+        if (!p.points || p.points.length < 3) return;
+        const current = p.frontEdgeIndex || 0;
+        p.frontEdgeIndex = (current + 1) % p.points.length;
+        markAsUnsaved('Plot Front Change');
+        draw();
+    }
+};
 
 // Button-based Plot Drawing (mobile-friendly)
 const btnAddPlotPoint = document.getElementById('btnAddPlotPoint');

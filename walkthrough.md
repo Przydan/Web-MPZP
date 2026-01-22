@@ -11,7 +11,9 @@ Your project is organized as follows:
 - **`.venv/`**: Virtual environment containing installed libraries (matplotlib, PIL).
 
 ## 🚀 How to Run
-
+### 3. Front Działki i Odległości
+Dodano możliwość oznaczania frontu działki ("Ustaw Front"), co wizualizuje krawędź frontową (czerwona linia) oraz automatycznie oblicza i wyświetla odległość budynku od tej granicy.
+![Wybór Frontu i Odległość](file:///home/przydan/.gemini/antigravity/brain/8319829a-afca-4d75-b359-aa7133eda046/plot_front_selected_1769066551272.png)
 1. **Update Images**:
    - Place your high-resolution high-quality images in the `input_images` folder.
    - Rename them to `wariant_5_dzialek.png` (light background) and `wariant_4_dzialki.png` (dark background), OR update the filenames in the script configuration.

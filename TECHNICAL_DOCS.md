@@ -74,13 +74,16 @@ Następnie wynik konwertowany jest na m²: `AreaM2 = AreaPx / (scalePxPerM^2)`
 
 ### 4.3 Wyznaczanie Linii Zabudowy (Inset Polygon)
 Do wizualizacji nieprzekraczalnych linii zabudowy używamy algorytmu przesuwania krawędzi wielokąta do wewnątrz (inset/offset).
-1. Dla każdej krawędzi wielokąta obliczany jest wektor normalny skierowany do wnętrza.
-2. Krawędź przesuwana jest o wartość `setback * scalePxPerM`.
-3. Wyznaczane są nowe punkty przecięcia przesuniętych linii.
+1. Dla każdej krawędzi wielokąta określana jest wartość odsunięcia:
+   - Krawędź "Frontowa" (oznaczona przez użytkownika): `setbackFront`.
+   - Pozostałe krawędzie: `setbackSide`.
+2. Krawędź przesuwana jest o odpowiednią wartość.
+3. Wyznaczane są punkty przecięcia przesuniętych linii.
 
-### 4.4 Rysowanie Wymiarów
-- **Działki:** Środki krawędzi są rzutowane na zewnątrz (prostopadle), gdzie rysowany jest "dymek" z długością boku. Wymaga to obliczenia wektora normalnego i pozycji tekstu uwzględniającej zoom kamery.
-- **Budynki:** Etykiety wymiarów (dł/szer) są pozycjonowane względem lokalnego układu współrzędnych obróconego budynku (`ctx.rotate`).
+### 4.4 Rysowanie Wymiarów i Odległości
+- **Działki:** Środki krawędzi są rzutowane na zewnątrz, gdzie rysowany jest "dymek" z długością.
+- **Budynki:** Etykiety wymiarów (dł/szer) są pozycjonowane względem lokalnego układu współrzędnych.
+- **Odległość od Frontu:** Dla zaznaczonej działki, system oblicza minimalną odległość każdego budynku od krawędzi frontowej i wizualizuje ją linią przerywaną wraz z wartością w metrach.
 
 ### 4.5 Auto-Save
 Wykorzystuje `localStorage` przeglądarki.
