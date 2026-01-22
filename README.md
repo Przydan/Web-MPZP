@@ -1,3 +1,5 @@
+# AI Generated - Google Antygravity
+
 # 🏗️ Planer Zabudowy Działki (Web MPZP)
 
 Nowoczesna aplikacja webowa do planowania zabudowy działek, tworzenia koncepcji podziału i generowania raportów zgodności z Miejscowym Planem Zagospodarowania Przestrzennego (MPZP).
